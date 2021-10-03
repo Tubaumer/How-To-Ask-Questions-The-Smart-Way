@@ -1,0 +1,80 @@
+Here's the code:
+import numpy as np
+np.random.seed(123) #for reproducibility
+
+from keras.models import sequential
+from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Convolution2D, MaxPooling2D
+from keras.utils import np_utils
+from keras.datasets import mnist
+
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
+X_test = X_test.reshape(X_test.shape[0], 1, 28, 28)
+X_train = X_train.astype('float32')
+X_test = X_test.astype('float32')
+X_train /= 255
+X_test /= 255
+
+y_train = np_utils.to_categorical(y_train, 10)
+y_test = np_utils.to_categorical(y_test, 10)
+
+model = Sequential()
+
+model.add(Convolution2D(32, 3, 3, activation='relu', input_shape=(28,28,1)))
+model.add(Convolution2D(32, 3, 3, activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Dropout(0.25))
+
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(10, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+model.fit(X_train, Y_train, 
+          batch_size=32, epochs=10, verbose=1)
+
+Here's the error:
+Epoch 1/10
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+<ipython-input-56-6d6fa0052189> in <module>()
+     37 
+     38 model.fit(X_train, Y_train, 
+---> 39           batch_size=32, epochs=10, verbose=1)
+
+9 frames
+/usr/local/lib/python3.7/dist-packages/tensorflow/python/framework/func_graph.py in wrapper(*args, **kwargs)
+    992           except Exception as e:  # pylint:disable=broad-except
+    993             if hasattr(e, "ag_error_metadata"):
+--> 994               raise e.ag_error_metadata.to_exception(e)
+    995             else:
+    996               raise
+
+ValueError: in user code:
+
+    /usr/local/lib/python3.7/dist-packages/keras/engine/training.py:853 train_function  *
+        return step_function(self, iterator)
+    /usr/local/lib/python3.7/dist-packages/keras/engine/training.py:842 step_function  **
+        outputs = model.distribute_strategy.run(run_step, args=(data,))
+    /usr/local/lib/python3.7/dist-packages/tensorflow/python/distribute/distribute_lib.py:1286 run
+        return self._extended.call_for_each_replica(fn, args=args, kwargs=kwargs)
+    /usr/local/lib/python3.7/dist-packages/tensorflow/python/distribute/distribute_lib.py:2849 call_for_each_replica
+        return self._call_for_each_replica(fn, args, kwargs)
+    /usr/local/lib/python3.7/dist-packages/tensorflow/python/distribute/distribute_lib.py:3632 _call_for_each_replica
+        return fn(*args, **kwargs)
+    /usr/local/lib/python3.7/dist-packages/keras/engine/training.py:835 run_step  **
+        outputs = model.train_step(data)
+    /usr/local/lib/python3.7/dist-packages/keras/engine/training.py:787 train_step
+        y_pred = self(x, training=True)
+    /usr/local/lib/python3.7/dist-packages/keras/engine/base_layer.py:1020 __call__
+        input_spec.assert_input_compatibility(self.input_spec, inputs, self.name)
+    /usr/local/lib/python3.7/dist-packages/keras/engine/input_spec.py:254 assert_input_compatibility
+        ' but received input with shape ' + display_shape(x.shape))
+
+    ValueError: Input 0 of layer sequential_17 is incompatible with the layer: expected axis -1 of input shape to have value 1 but received input with shape (32, 1, 28, 28)
